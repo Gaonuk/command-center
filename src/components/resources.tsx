@@ -20,12 +20,8 @@ import { imageForResourceId, ResourceId } from "@/lib/resources";
 
 export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
     const { tables, sync } = useCore();
-    const { loading, progress } = useSyncStatus(allianceEntity);
+    const { loading, progress } = useSyncStatus();
     const { getAsteroidResourceCount } = createUtils(tables);
-
-    if (!allianceEntity) {
-        return <div> No alliance selected. </div>
-    }
 
     const asteroids = useMemo(() => {
         const playersInAlliance = query({
@@ -48,7 +44,7 @@ export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
         for (const asteroid of asteroids) {
             sync.syncAsteroidData(asteroid);
         }
-    }, [asteroids, allianceEntity]);
+    }, [asteroids]);
 
     const resources = useMemo(() => {
         let newResources: Record<string, bigint> = {};
@@ -66,8 +62,9 @@ export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
         return newResources;
     }, [asteroids]);
 
-    console.log('resources', resources)
-
+    if (!allianceEntity) {
+        return <div> No alliance selected. </div>
+    }
     if (loading) return <Progress value={progress * 100} className="w-2/3 h-6" />;
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

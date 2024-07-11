@@ -11,25 +11,28 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { ConnectKitButton } from "connectkit";
 import { useEffect, useState } from "react"
 import { Entity } from "@primodiumxyz/reactive-tables"
-import { useAccountClient, useCore } from "@primodiumxyz/core/react"
+import { useAccountClient, useCore, useSyncStatus } from "@primodiumxyz/core/react"
 import { createUtils } from "@primodiumxyz/core";
 import { Resources } from "./resources";
 import { Fleets } from "./fleets";
+import { Progress } from "./ui/progress";
+import { Leaderboard } from "./leaderboard";
 
 export default function MainDashboard() {
     const { tables, sync } = useCore();
+    const [alliances, setAlliances] = useState<Entity[]>([]);
     const [selectedAlliance, setSelectedAlliance] = useState<Entity | undefined>(undefined);
-    const { getAllianceName } = createUtils(tables);
-    const alliances = tables.Alliance.getAll();
+    const { getAllianceName, getAllianceNameFromPlayer } = createUtils(tables);
 
     const { playerAccount } = useAccountClient();
+    const { loading, progress } = useSyncStatus(playerAccount.entity);
 
     useEffect(() => {
         sync.syncPlayerData(playerAccount.address, playerAccount.entity);
+        setAlliances(tables.Alliance.getAll());
     }, [playerAccount.entity, playerAccount.address]);
 
     useEffect(() => {
@@ -38,6 +41,16 @@ export default function MainDashboard() {
         }
     }, [selectedAlliance]);
 
+
+
+    if (loading) return (
+        <div className="w-2/3 h-6">
+            <h4 className="text-xl font-semibold tracking-tight mb-4">
+                Loading Game Data...
+            </h4>
+            <Progress value={progress * 100} className="w-2/3 h-6" />
+        </div>
+    );
     return (
         <div className="flex flex-col w-full min-h-screen">
             <header className="bg-background border-b px-4 py-3 flex items-center justify-between sm:px-6">
@@ -47,19 +60,22 @@ export default function MainDashboard() {
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Select onValueChange={(value) => setSelectedAlliance(value as Entity)}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Alliance" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {
-                                alliances.map((alliance) => (
-                                    <SelectItem value={alliance}>{getAllianceName(alliance)}</SelectItem>
-                                ))
-                            }
-                        </SelectContent>
-                    </Select>
-
+                    {
+                        alliances.length > 0 && (
+                            <Select onValueChange={(value) => setSelectedAlliance(value as Entity)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Alliance" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {
+                                        alliances.map((alliance) => (
+                                            <SelectItem key={alliance} value={alliance}>{getAllianceName(alliance)}</SelectItem>
+                                        ))
+                                    }
+                                </SelectContent>
+                            </Select>
+                        )
+                    }
                     <ConnectKitButton />
                 </div>
             </header>
@@ -70,7 +86,11 @@ export default function MainDashboard() {
                         <TabsTrigger value="resources">Resources</TabsTrigger>
                         <TabsTrigger value="fleets">Fleets</TabsTrigger>
                         {
-                            selectedAlliance && getAllianceName(selectedAlliance) === "WASD" && (
+                            selectedAlliance
+                            && (getAllianceName(selectedAlliance) === "WASD"
+                                || getAllianceName(selectedAlliance) === "WASDX")
+                            // && getAllianceName(selectedAlliance) === getAllianceNameFromPlayer(playerAccount.entity)
+                            && (
                                 <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
                             )
                         }
@@ -82,42 +102,7 @@ export default function MainDashboard() {
                         <Fleets allianceEntity={selectedAlliance} />
                     </TabsContent>
                     <TabsContent value="leaderboard">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[100px]">Rank</TableHead>
-                                    <TableHead>Address</TableHead>
-                                    <TableHead className="text-right">Points</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow>
-                                    <TableCell className="font-medium">1</TableCell>
-                                    <TableCell>0x123456789abcdef0123456789abcdef01234567</TableCell>
-                                    <TableCell className="text-right">10,000</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">2</TableCell>
-                                    <TableCell>0x7890abcdef0123456789abcdef0123456789ab</TableCell>
-                                    <TableCell className="text-right">9,500</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">3</TableCell>
-                                    <TableCell>0xfedcba9876543210fedcba9876543210fedcba</TableCell>
-                                    <TableCell className="text-right">9,000</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">4</TableCell>
-                                    <TableCell>0x0123456789abcdef0123456789abcdef01234</TableCell>
-                                    <TableCell className="text-right">8,500</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">5</TableCell>
-                                    <TableCell>0x9876543210fedcba9876543210fedcba98765</TableCell>
-                                    <TableCell className="text-right">8,000</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
+                        <Leaderboard allianceEntity={selectedAlliance} />
                     </TabsContent>
                 </Tabs>
             </div>

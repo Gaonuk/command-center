@@ -10,22 +10,17 @@ import {
 } from "@primodiumxyz/core/react";
 import {
     createUtils,
-    formatResourceCount,
     getEntityTypeName,
 } from "@primodiumxyz/core";
 import { useEffect, useMemo } from "react";
 import { Progress } from "./ui/progress";
 import { Entity, query } from "@primodiumxyz/reactive-tables";
-import { imageForResourceId, ResourceId } from "@/lib/resources";
+import { imageForUnitId, UnitId } from "@/lib/fleets";
 
 export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
     const { tables, sync } = useCore();
     const { loading, progress } = useSyncStatus(allianceEntity);
-    const { getFleetUnitCounts } = createUtils(tables);
-
-    if (!allianceEntity) {
-        return <div> No alliance selected. </div>
-    }
+    const { getFleetUnitCounts, getFleets } = createUtils(tables);
 
     const fleets = useMemo(() => {
         const playersInAlliance = query({
@@ -44,18 +39,17 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
         let newFleets: Entity[] = [];
 
         for (const asteroid of newAsteroids) {
-            const asteroidFleets = query({
-                withProperties: [{ table: tables.OwnedBy, properties: { value: asteroid } }]
-            })
+            const asteroidFleets = getFleets(asteroid);
             newFleets = [...newFleets, ...asteroidFleets];
         }
-
-        for (const fleet of newFleets) {
-            sync.syncFleetData(fleet);
-        }
-
         return newFleets;
     }, [allianceEntity]);
+
+    useEffect(() => {
+        for (const fleet of fleets) {
+            sync.syncFleetData(fleet);
+        }
+    }, [fleets]);
 
     const units = useMemo(() => {
         let newUnits: Record<string, bigint> = {};
@@ -73,8 +67,9 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
         return newUnits;
     }, [fleets]);
 
-    console.log('units', units);
-
+    if (!allianceEntity) {
+        return <div> No alliance selected. </div>
+    }
     if (loading) return <Progress value={progress * 100} className="w-2/3 h-6" />;
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -99,7 +94,7 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center gap-4">
-                                {/* <img src={`src/assets/resources/${imageForUnitId[unit as UnitId]}.png`} width={48} height={48} alt="Unit image" className="rounded-md" /> */}
+                                <img src={`src/assets/units/${imageForUnitId[unit as UnitId]}.png`} width={48} height={48} alt="Unit image" className="rounded-md" />
                                 <div>
                                     <div className="text-4xl font-bold">{count.toString()}</div>
                                 </div>
