@@ -108,7 +108,22 @@ export default function MainDashboard() {
                 </Tabs>
             </div>
             <footer className="bg-background border-t px-4 py-3 flex items-center justify-center sm:px-6">
-                <p className="text-sm text-muted-foreground">Built by Duck, Sponsored by WASD</p>
+                <p className="text-sm text-muted-foreground">
+                    Built by {" "}
+                    <a
+                        href="https://x.com/GaonukRodrigo"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sky-600"
+                    >Duck</a>
+                    , Sponsored by {" "}
+                    <a
+                        href="https://x.com/WASD_0x"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sky-600"
+                    >WASD</a>
+                </p>
             </footer>
         </div>
     )

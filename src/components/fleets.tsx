@@ -14,7 +14,7 @@ import {
     getEntityTypeName,
 } from "@primodiumxyz/core";
 import { Progress } from "./ui/progress";
-import { Entity, query } from "@primodiumxyz/reactive-tables";
+import { Entity, query, useQuery } from "@primodiumxyz/reactive-tables";
 import { imageForUnitId, UnitId } from "@/lib/fleets";
 
 export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
@@ -22,11 +22,13 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
     const { loading, progress } = useSyncStatus(allianceEntity);
     const { getFleetUnitCounts, getFleets } = createUtils(tables);
 
-    const fleets = useMemo(() => {
-        const playersInAlliance = query({
-            withProperties: [{ table: tables.PlayerAlliance, properties: { alliance: allianceEntity } }]
-        });
+    const playersInAlliance = useQuery({
+        withProperties: [
+            { table: tables.PlayerAlliance, properties: { alliance: allianceEntity } },
+        ],
+    });
 
+    const asteroids = useMemo(() => {
         let newAsteroids: Entity[] = [];
 
         for (const player of playersInAlliance) {
@@ -36,14 +38,18 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
             newAsteroids = [...newAsteroids, ...playerAsteroids];
         }
 
+        return newAsteroids;
+    }, [tables.OwnedBy, playersInAlliance]);
+
+    const fleets = useMemo(() => {
         let newFleets: Entity[] = [];
 
-        for (const asteroid of newAsteroids) {
+        for (const asteroid of asteroids) {
             const asteroidFleets = getFleets(asteroid);
             newFleets = [...newFleets, ...asteroidFleets];
         }
         return newFleets;
-    }, [allianceEntity, tables.OwnedBy, tables.PlayerAlliance, getFleets]);
+    }, [asteroids, getFleets]);
 
     useEffect(() => {
         for (const fleet of fleets) {
