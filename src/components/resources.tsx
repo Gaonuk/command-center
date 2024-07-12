@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import {
     Card,
     CardContent,
@@ -13,7 +14,6 @@ import {
     formatResourceCount,
     getEntityTypeName,
 } from "@primodiumxyz/core";
-import { useEffect, useMemo } from "react";
 import { Progress } from "./ui/progress";
 import { Entity, query } from "@primodiumxyz/reactive-tables";
 import { imageForResourceId, ResourceId } from "@/lib/resources";
@@ -38,16 +38,16 @@ export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
         }
 
         return newAsteroids;
-    }, [allianceEntity]);
+    }, [allianceEntity, tables.OwnedBy, tables.PlayerAlliance]);
 
     useEffect(() => {
         for (const asteroid of asteroids) {
             sync.syncAsteroidData(asteroid);
         }
-    }, [asteroids]);
+    }, [asteroids, sync]);
 
     const resources = useMemo(() => {
-        let newResources: Record<string, bigint> = {};
+        const newResources: Record<string, bigint> = {};
         for (const asteroid of asteroids) {
             const asteroidResources = getAsteroidResourceCount(asteroid);
             const allResources = [...asteroidResources.entries()].slice(0, 10);
@@ -60,7 +60,7 @@ export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
             }
         }
         return newResources;
-    }, [asteroids]);
+    }, [asteroids, getAsteroidResourceCount]);
 
     if (!allianceEntity) {
         return <div> No alliance selected. </div>

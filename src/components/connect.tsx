@@ -10,7 +10,7 @@ const connectorIcons: Record<string, string> = {
   ["Coinbase Wallet"]: "/web3/coinbase.svg",
 };
 
-export const Connect: React.FC = React.memo(() => {
+export const Connect: React.FC = React.memo(function Connect() {
   const { isConnected } = useAccount();
   const { connect, connectors, error, isPending } = useConnect();
   const { toast } = useToast();

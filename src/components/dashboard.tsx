@@ -3,6 +3,7 @@
  * @see https://v0.dev/t/CEnoDBMcJns
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
+import { useEffect, useState } from "react"
 import {
     Select,
     SelectContent,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ConnectKitButton } from "connectkit";
-import { useEffect, useState } from "react"
 import { Entity } from "@primodiumxyz/reactive-tables"
 import { useAccountClient, useCore, useSyncStatus } from "@primodiumxyz/core/react"
 import { createUtils } from "@primodiumxyz/core";
@@ -33,13 +33,13 @@ export default function MainDashboard() {
     useEffect(() => {
         sync.syncPlayerData(playerAccount.address, playerAccount.entity);
         setAlliances(tables.Alliance.getAll());
-    }, [playerAccount.entity, playerAccount.address]);
+    }, [sync, playerAccount.entity, playerAccount.address, tables.Alliance]);
 
     useEffect(() => {
         if (selectedAlliance) {
             sync.syncAllianceData(selectedAlliance);
         }
-    }, [selectedAlliance]);
+    }, [selectedAlliance, sync]);
 
 
 

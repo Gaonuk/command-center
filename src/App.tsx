@@ -11,7 +11,6 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <div className="w-screen h-screen m-auto p-2 xl:p-10 flex flex-col items-center justify-center">
-      {/* Wagmi handles the connection to the blockchain and the wallet */}
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <ConnectKitProvider theme="midnight">

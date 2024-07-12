@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from "react";
-
 import { useAccount } from "wagmi";
 import { Core as CoreType, createCore } from "@primodiumxyz/core";
 import { AccountClientProvider, CoreProvider } from "@primodiumxyz/core/react";
@@ -25,6 +24,7 @@ function Core() {
   if (!account.isConnected) return null;
 
   return (
+    //@ts-expect-error - mud types are too complex so we will ignore for now.
     <CoreProvider {...core}>
       <AccountClientProvider playerAddress={account.address}>
         {

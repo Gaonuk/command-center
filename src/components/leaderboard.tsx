@@ -1,3 +1,4 @@
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import {
     useAccountClient,
@@ -5,7 +6,6 @@ import {
     useSyncStatus,
 } from "@primodiumxyz/core/react";
 import { createUtils, entityToAddress, entityToPlayerName } from "@primodiumxyz/core";
-import { useEffect, useMemo, useState } from "react";
 import { Progress } from "./ui/progress";
 import { Entity, query } from "@primodiumxyz/reactive-tables";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
@@ -26,7 +26,7 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
             withProperties: [{ table: tables.PlayerAlliance, properties: { alliance: allianceEntity } }]
         });
 
-        let playerPoints: Record<string, number> = {};
+        const playerPoints: Record<string, number> = {};
 
         for (const player of playersInAlliance) {
             playerPoints[player] = 0;
@@ -39,23 +39,19 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
             for (const asteroid of playerAsteroids) {
                 const asteroidData = getAsteroidInfo(asteroid);
                 console.log('asteroidData', asteroidData)
-                const homeBase = query({
-                    withProperties: [{ table: tables.Home, properties: { value: asteroid } }]
-                })
+                // const homeBase = query({
+                // withProperties: [{ table: tables.Home, properties: { value: asteroid } }]
+                // })
                 // const homeBaseData = getBuildingInfo(homeBase[0]);
-                console.log('homeBase', homeBase);
-                if (
-                    asteroidData.asteroidData
-                    && asteroidData.asteroidData.wormhole) {
+                // console.log('homeBase', homeBase);
+                if (asteroidData.asteroidData?.wormhole) {
                     playerPoints[player] += 15;
                 }
-                if (
-                    asteroidData.asteroidData
-                    && asteroidData.asteroidData.primodium
-                    && asteroidData.asteroidData.primodium > 0n) {
-                    if (asteroidData.asteroidData.maxLevel === 3n) {
+                if (asteroidData.asteroidData?.primodium
+                    && asteroidData.asteroidData?.primodium !== 0n) {
+                    if (asteroidData.asteroidData?.maxLevel === 3n) {
                         playerPoints[player] += 30;
-                    } else if (asteroidData.asteroidData.maxLevel === 6n) {
+                    } else if (asteroidData.asteroidData?.maxLevel === 6n) {
                         playerPoints[player] += 60;
                     }
                 }
@@ -63,7 +59,7 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
 
         }
 
-        let sortedPoints: [string, number][] = [];
+        const sortedPoints: [string, number][] = [];
         for (const player in playerPoints) {
             sortedPoints.push([player, playerPoints[player]]);
         }
@@ -71,7 +67,7 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
         sortedPoints.sort((a, b) => b[1] - a[1]);
 
         return sortedPoints;
-    }, [allianceEntity]);
+    }, [allianceEntity, getAsteroidInfo, tables.OwnedBy, tables.PlayerAlliance, sync]);
 
     useEffect(() => {
         for (const [player, points] of playerPoints) {
@@ -81,11 +77,11 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
         }
         // sum total points
         let total = 0;
-        for (const [_, points] of playerPoints) {
-            total += points;
+        for (const points of playerPoints) {
+            total += points[1];
         }
         setTotalPoints(total);
-    }, [playerPoints]);
+    }, [playerPoints, playerAccount.entity]);
 
     if (loading) return <Progress value={progress * 100} className="w-2/3 h-6" />;
     return (

@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import {
     Card,
     CardContent,
@@ -12,7 +13,6 @@ import {
     createUtils,
     getEntityTypeName,
 } from "@primodiumxyz/core";
-import { useEffect, useMemo } from "react";
 import { Progress } from "./ui/progress";
 import { Entity, query } from "@primodiumxyz/reactive-tables";
 import { imageForUnitId, UnitId } from "@/lib/fleets";
@@ -43,16 +43,16 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
             newFleets = [...newFleets, ...asteroidFleets];
         }
         return newFleets;
-    }, [allianceEntity]);
+    }, [allianceEntity, tables.OwnedBy, tables.PlayerAlliance, getFleets]);
 
     useEffect(() => {
         for (const fleet of fleets) {
             sync.syncFleetData(fleet);
         }
-    }, [fleets]);
+    }, [fleets, sync]);
 
     const units = useMemo(() => {
-        let newUnits: Record<string, bigint> = {};
+        const newUnits: Record<string, bigint> = {};
         for (const fleet of fleets) {
             const fleetUnits = getFleetUnitCounts(fleet);
             const allUnits = [...fleetUnits.entries()]
@@ -65,7 +65,7 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
             }
         }
         return newUnits;
-    }, [fleets]);
+    }, [fleets, getFleetUnitCounts]);
 
     if (!allianceEntity) {
         return <div> No alliance selected. </div>
