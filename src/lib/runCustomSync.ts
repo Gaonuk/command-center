@@ -32,7 +32,7 @@ export const runCustomSync = (network: Core["network"], coreConfig: CoreConfig, 
         writer: storageAdapter,
     });
 
-    sync.start(async (_, blockNumber, progress) => {
+    sync.start(async (_, __, progress) => {
         console.log(`Syncing from Indexer: ${progress * 100}%`);
 
         if (progress === 1) {

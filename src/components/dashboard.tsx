@@ -25,7 +25,7 @@ export default function MainDashboard() {
     const { tables, sync } = useCore();
     const [alliances, setAlliances] = useState<Entity[]>([]);
     const [selectedAlliance, setSelectedAlliance] = useState<Entity | undefined>(undefined);
-    const { getAllianceName, getAllianceNameFromPlayer } = createUtils(tables);
+    const { getAllianceName } = createUtils(tables);
 
     const { playerAccount } = useAccountClient();
     const { loading, progress } = useSyncStatus(playerAccount.entity);
