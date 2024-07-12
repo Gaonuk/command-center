@@ -26,6 +26,8 @@ export const runCustomSync = (network: Core["network"], coreConfig: CoreConfig, 
                     { tableId: tables.Asteroid.id },
                     { tableId: tables.Keys_AsteroidSet.id },
                     { tableId: tables.AsteroidCount.id },
+                    { tableId: tables.Home.id },
+                    { tableId: tables.BuildingType.id },
                 ]
             }
         }),

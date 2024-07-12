@@ -16,7 +16,7 @@ import { Quest, questToName, questToPoints } from "@/lib/quests";
 export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => {
     const { tables, sync } = useCore();
     const { loading, progress } = useSyncStatus();
-    const { getAsteroidInfo } = createUtils(tables);
+    const { getAsteroidInfo, getBuildingInfo } = createUtils(tables);
     const { playerAccount } = useAccountClient();
     const [earnedPoints, setEarnedPoints] = useState<number | undefined>();
     const [totalPoints, setTotalPoints] = useState<number | undefined>();
@@ -38,12 +38,8 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
             }
             for (const asteroid of playerAsteroids) {
                 const asteroidData = getAsteroidInfo(asteroid);
-                console.log('asteroidData', asteroidData)
-                // const homeBase = query({
-                // withProperties: [{ table: tables.Home, properties: { value: asteroid } }]
-                // })
-                // const homeBaseData = getBuildingInfo(homeBase[0]);
-                // console.log('homeBase', homeBase);
+                const base = tables.Home.get(asteroid)?.value;
+                const mainBaseData = getBuildingInfo(base as Entity);
                 if (asteroidData.asteroidData?.wormhole) {
                     playerPoints[player] += 15;
                 }
@@ -52,7 +48,16 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
                     if (asteroidData.asteroidData?.maxLevel === 3n) {
                         playerPoints[player] += 30;
                     } else if (asteroidData.asteroidData?.maxLevel === 6n) {
-                        playerPoints[player] += 60;
+                        playerPoints[player] += 90;
+                    } else if (asteroidData.asteroidData?.maxLevel > 6n) {
+                        playerPoints[player] += 270;
+                    }
+                } else {
+                    if (asteroidData.name.split(' ')[2] === asteroidData.asteroidData?.maxLevel.toString()) {
+                        playerPoints[player] += 30;
+                    }
+                    if (mainBaseData.level === mainBaseData.maxLevel) {
+                        playerPoints[player] += 90;
                     }
                 }
             }
@@ -67,7 +72,15 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
         sortedPoints.sort((a, b) => b[1] - a[1]);
 
         return sortedPoints;
-    }, [allianceEntity, getAsteroidInfo, tables.OwnedBy, tables.PlayerAlliance, sync]);
+    }, [
+        getAsteroidInfo,
+        getBuildingInfo,
+        allianceEntity,
+        tables.Home,
+        tables.OwnedBy,
+        tables.PlayerAlliance,
+        sync
+    ]);
 
     useEffect(() => {
         for (const [player, points] of playerPoints) {
@@ -138,7 +151,7 @@ export const Leaderboard = ({ allianceEntity }: { allianceEntity?: Entity }) => 
                     )
                 }
 
-                <Card className="p-6 flex flex-col gap-4">
+                <Card className="p-6 flex flex-col gap-4 overscroll-auto">
                     <h3 className="text-lg font-medium">Active Quests</h3>
                     <Table>
                         <TableHeader>
