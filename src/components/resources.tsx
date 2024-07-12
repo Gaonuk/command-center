@@ -74,7 +74,7 @@ export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-4">
-                        <img src="src/assets/asteroid.png" width={48} height={48} alt="Network Traffic" className="rounded-md" />
+                        <img src="assets/asteroid.png" width={48} height={48} alt="Network Traffic" className="rounded-md" />
                         <div>
                             <div className="text-4xl font-bold">{asteroids.length}</div>
                         </div>
@@ -89,7 +89,7 @@ export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center gap-4">
-                                <img src={`src/assets/resources/${imageForResourceId[resource as ResourceId]}.png`} width={48} height={48} alt="Network Traffic" className="rounded-md" />
+                                <img src={`assets/resources/${imageForResourceId[resource as ResourceId]}.png`} width={48} height={48} alt="Network Traffic" className="rounded-md" />
                                 <div>
                                     <div className="text-4xl font-bold">{formatResourceCount(resource as Entity, count)}</div>
                                 </div>

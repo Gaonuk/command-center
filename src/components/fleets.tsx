@@ -79,7 +79,7 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-4">
-                        <img src="src/assets/fleet.png" width={48} height={48} alt="Fleet" className="rounded-md" />
+                        <img src="assets/fleet.png" width={48} height={48} alt="Fleet" className="rounded-md" />
                         <div>
                             <div className="text-4xl font-bold">{fleets.length}</div>
                         </div>
@@ -94,7 +94,7 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center gap-4">
-                                <img src={`src/assets/units/${imageForUnitId[unit as UnitId]}.png`} width={48} height={48} alt="Unit image" className="rounded-md" />
+                                <img src={`assets/units/${imageForUnitId[unit as UnitId]}.png`} width={48} height={48} alt="Unit image" className="rounded-md" />
                                 <div>
                                     <div className="text-4xl font-bold">{count.toString()}</div>
                                 </div>
