@@ -25,7 +25,7 @@ export default function MainDashboard() {
     const { tables, sync } = useCore();
     const [alliances, setAlliances] = useState<Entity[]>([]);
     const [selectedAlliance, setSelectedAlliance] = useState<Entity | undefined>(undefined);
-    const { getAllianceName } = createUtils(tables);
+    const { getAllianceName, getAllianceNameFromPlayer } = createUtils(tables);
 
     const { playerAccount } = useAccountClient();
     const { loading, progress } = useSyncStatus(playerAccount.entity);
@@ -89,7 +89,8 @@ export default function MainDashboard() {
                             selectedAlliance
                             && (getAllianceName(selectedAlliance) === "WASD"
                                 || getAllianceName(selectedAlliance) === "WASDX")
-                            // && getAllianceName(selectedAlliance) === getAllianceNameFromPlayer(playerAccount.entity)
+                            && (getAllianceNameFromPlayer(playerAccount.entity) === "WASD"
+                                || getAllianceNameFromPlayer(playerAccount.entity) === "WASDX")
                             && (
                                 <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
                             )
