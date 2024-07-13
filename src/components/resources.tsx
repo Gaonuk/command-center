@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     Card,
     CardContent,
@@ -15,36 +15,48 @@ import {
     getEntityTypeName,
 } from "@primodiumxyz/core";
 import { Progress } from "./ui/progress";
-import { Entity, query } from "@primodiumxyz/reactive-tables";
+import { Entity, query, queryMatchingCondition } from "@primodiumxyz/reactive-tables";
 import { imageForResourceId, ResourceId } from "@/lib/resources";
 
 export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
     const { tables, sync } = useCore();
     const { loading, progress } = useSyncStatus();
     const { getAsteroidResourceCount } = createUtils(tables);
+    const [refetchIndex, setRefetchIndex] = useState(0);
 
-    const asteroids = useMemo(() => {
-        const playersInAlliance = query({
-            withProperties: [{ table: tables.PlayerAlliance, properties: { alliance: allianceEntity } }]
-        });
+    const playersInAlliance = query({
+        withProperties: [
+            { table: tables.PlayerAlliance, properties: { alliance: allianceEntity } },
+        ],
+    });
 
-        let newAsteroids: Entity[] = [];
-
-        for (const player of playersInAlliance) {
-            const playerAsteroids = query({
-                withProperties: [{ table: tables.OwnedBy, properties: { value: player } }]
+    const asteroids = query({
+        with: [tables.Asteroid],
+        matching: [
+            queryMatchingCondition({
+                table: tables.OwnedBy,
+                where: (properties) => {
+                    const { value: ownerEntity } = properties;
+                    return playersInAlliance.includes(ownerEntity as Entity);
+                }
             })
-            newAsteroids = [...newAsteroids, ...playerAsteroids];
-        }
+        ]
+    })
 
-        return newAsteroids;
-    }, [allianceEntity, tables.OwnedBy, tables.PlayerAlliance]);
-
-    useEffect(() => {
+    const syncAsteroids = useCallback(() => {
         for (const asteroid of asteroids) {
             sync.syncAsteroidData(asteroid);
         }
     }, [asteroids, sync]);
+
+    useEffect(() => {
+        syncAsteroids();
+        const intervalId = setInterval(() => {
+            syncAsteroids();
+            setRefetchIndex((prev) => prev + 1);
+        }, 5000);
+        return () => clearInterval(intervalId);
+    });
 
     const resources = useMemo(() => {
         const newResources: Record<string, bigint> = {};
@@ -60,7 +72,8 @@ export const Resources = ({ allianceEntity }: { allianceEntity?: Entity }) => {
             }
         }
         return newResources;
-    }, [asteroids, getAsteroidResourceCount]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refetchIndex, getAsteroidResourceCount]);
 
     if (!allianceEntity) {
         return <div> No alliance selected. </div>

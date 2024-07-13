@@ -14,7 +14,7 @@ import {
     getEntityTypeName,
 } from "@primodiumxyz/core";
 import { Progress } from "./ui/progress";
-import { Entity, query, useQuery } from "@primodiumxyz/reactive-tables";
+import { Entity, query, queryMatchingCondition, useQuery } from "@primodiumxyz/reactive-tables";
 import { imageForUnitId, UnitId } from "@/lib/fleets";
 
 export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
@@ -28,18 +28,18 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
         ],
     });
 
-    const asteroids = useMemo(() => {
-        let newAsteroids: Entity[] = [];
-
-        for (const player of playersInAlliance) {
-            const playerAsteroids = query({
-                withProperties: [{ table: tables.OwnedBy, properties: { value: player } }]
+    const asteroids = query({
+        with: [tables.Asteroid],
+        matching: [
+            queryMatchingCondition({
+                table: tables.OwnedBy,
+                where: (properties) => {
+                    const { value: ownerEntity } = properties;
+                    return playersInAlliance.includes(ownerEntity as Entity);
+                }
             })
-            newAsteroids = [...newAsteroids, ...playerAsteroids];
-        }
-
-        return newAsteroids;
-    }, [tables.OwnedBy, playersInAlliance]);
+        ]
+    })
 
     const fleets = useMemo(() => {
         let newFleets: Entity[] = [];
@@ -70,8 +70,21 @@ export const Fleets = ({ allianceEntity }: { allianceEntity?: Entity }) => {
                 }
             }
         }
+
+        for (const asteroid of asteroids) {
+            const asteroidUnits = getFleetUnitCounts(asteroid);
+            const allUnits = [...asteroidUnits.entries()]
+            for (const [unit, count] of allUnits) {
+                if (newUnits[unit]) {
+                    newUnits[unit] += count;
+                } else {
+                    newUnits[unit] = count;
+                }
+            }
+        }
+
         return newUnits;
-    }, [fleets, getFleetUnitCounts]);
+    }, [fleets, asteroids, getFleetUnitCounts]);
 
     if (!allianceEntity) {
         return <div> No alliance selected. </div>
