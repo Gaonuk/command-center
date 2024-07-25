@@ -13,6 +13,7 @@ import { shortenAddress } from "@/lib/utils";
 import { useAccount, useDisconnect } from "wagmi";
 import type { View } from "@/types";
 import views from "@/lib/views";
+import { authorizedWallets } from "@/constants/authorized-wallets";
 
 interface DropdownProps {
 	setView: (view: View) => void;
@@ -39,10 +40,12 @@ export function Dropdown({ setView }: DropdownProps) {
 							<User className="mr-2 h-4 w-4" />
 							<span>Profile</span>
 						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => setView(views.admin)}>
-							<Wrench className="mr-2 h-4 w-4" />
-							<span>Admin</span>
-						</DropdownMenuItem>
+						{authorizedWallets.includes(address.toLowerCase()) && (
+							<DropdownMenuItem onClick={() => setView(views.admin)}>
+								<Wrench className="mr-2 h-4 w-4" />
+								<span>Admin</span>
+							</DropdownMenuItem>
+						)}
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={() => disconnect()}>

@@ -86,7 +86,11 @@ export const columns: ColumnDef<Quest>[] = [
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem onClick={() => {}}>
+						<DropdownMenuItem
+							onClick={() => {
+								console.log("quest", row.getValue("id"));
+							}}
+						>
 							<X className="mr-2 h-4 w-4" />
 							<span>Finish Quest</span>
 						</DropdownMenuItem>
