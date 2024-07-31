@@ -1,11 +1,11 @@
 import { useCore } from "@primodiumxyz/core/react";
+import { useEffect, useState } from "react";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "./ui/tooltip";
-import { useEffect, useState } from "react";
 
 export default function Polling() {
 	const { network } = useCore();
@@ -24,7 +24,6 @@ export default function Polling() {
 		return () => subscription.unsubscribe();
 	}, [latestBlockNumber$]);
 
-	console.log("blockNumber", blockNumber);
 	const blockExternalLinkHref =
 		"https://primodium-sepolia.explorer.caldera.xyz/block/";
 

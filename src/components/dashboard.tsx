@@ -6,71 +6,42 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addressToEntity, createUtils } from "@primodiumxyz/core";
-import { useCore, useSyncStatus } from "@primodiumxyz/core/react";
-import type { Entity } from "@primodiumxyz/reactive-tables";
-import { useEffect, useMemo, useState } from "react";
-import { Fleets } from "./fleets";
-import { Leaderboard } from "./leaderboard";
-import { Resources } from "./resources";
-import { Progress } from "./ui/progress";
-import { decodeEntity } from "@primodiumxyz/reactive-tables/utils";
-import { useAccount } from "wagmi";
-import { Login } from "./log-in";
-import Polling from "./pollings";
-import { Dropdown } from "./dropdown";
+import { usePrimodiumContext } from "@/contexts/primodium-context";
 import views from "@/lib/views";
 import type { View } from "@/types";
+import { createUtils } from "@primodiumxyz/core";
+import { useCore, useSyncStatus } from "@primodiumxyz/core/react";
+import type { Entity } from "@primodiumxyz/reactive-tables";
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import { Admin } from "./admin";
+import { Dropdown } from "./dropdown";
+import { Fleets } from "./fleets";
+import { Leaderboard } from "./leaderboard";
+import { Login } from "./log-in";
+import Polling from "./pollings";
+import { Profile } from "./profile";
+import { Resources } from "./resources";
 import { Button } from "./ui/button";
+import { Progress } from "./ui/progress";
 
 export default function MainDashboard() {
-	const { tables, sync } = useCore();
-	const { address, isConnected } = useAccount();
-	const [alliances, setAlliances] = useState<Entity[]>([]);
+	const { tables } = useCore();
+	const { isConnected } = useAccount();
+	const {
+		alliances,
+		setAlliances,
+		playerEntity,
+		currentAlliance,
+		setCurrentAlliance,
+	} = usePrimodiumContext();
 	const [view, setView] = useState<View>(views.alliances);
-	const [selectedAlliance, setSelectedAlliance] = useState<Entity | undefined>(
-		undefined,
-	);
 	const { getAllianceName, getAllianceNameFromPlayer } = createUtils(tables);
-	const playerEntity = useMemo(() => {
-		if (isConnected && address) {
-			return addressToEntity(address);
-		}
-		return undefined;
-	}, [address, isConnected]);
 	const { loading, progress } = useSyncStatus(playerEntity);
 
 	useEffect(() => {
-		if (isConnected) {
-			sync.syncPlayerData(address, playerEntity);
-		}
 		setAlliances(tables.Alliance.getAll());
-	}, [tables.Alliance, sync, address, playerEntity, isConnected]);
-
-	const entity =
-		"0x000000000000000000000000e213ec68c5c2889d5ca6e5bd980693a15246b7c7000000000000000000000000b3ef48c19cc8b2c1d8850af9809cc70bb63e8dfd";
-
-	const delegator = tables.UserDelegationControl.getEntityKeys(
-		entity as Entity,
-	);
-	console.log("delegator", delegator);
-
-	const result = decodeEntity(
-		{
-			delegator: "address",
-			delegatee: "address",
-		},
-		entity as Entity,
-	);
-
-	console.log("result", result);
-
-	useEffect(() => {
-		if (selectedAlliance) {
-			sync.syncAllianceData(selectedAlliance);
-		}
-	}, [selectedAlliance, sync]);
+	}, [tables.Alliance, setAlliances]);
 
 	if (loading)
 		return (
@@ -98,7 +69,7 @@ export default function MainDashboard() {
 				<div className="flex items-center gap-4">
 					{view === views.alliances && alliances.length > 0 && (
 						<Select
-							onValueChange={(value) => setSelectedAlliance(value as Entity)}
+							onValueChange={(value) => setCurrentAlliance(value as Entity)}
 						>
 							<SelectTrigger className="w-[180px]">
 								<SelectValue placeholder="Alliance" />
@@ -118,30 +89,30 @@ export default function MainDashboard() {
 			{view === views.alliances && (
 				<div className="flex-1 bg-muted/40 p-4 md:p-8">
 					<h1 className="text-4xl font-semibold mb-5">
-						{selectedAlliance && getAllianceName(selectedAlliance)} Alliance
+						{currentAlliance && getAllianceName(currentAlliance)} Alliance
 						Information
 					</h1>
 					<Tabs defaultValue="resources">
 						<TabsList className="flex items-center gap-4">
 							<TabsTrigger value="resources">Resources</TabsTrigger>
 							<TabsTrigger value="fleets">Fleets</TabsTrigger>
-							{selectedAlliance &&
+							{currentAlliance &&
 								playerEntity &&
-								(getAllianceName(selectedAlliance) === "WASD" ||
-									getAllianceName(selectedAlliance) === "WASDX") &&
+								(getAllianceName(currentAlliance) === "WASD" ||
+									getAllianceName(currentAlliance) === "WASDX") &&
 								(getAllianceNameFromPlayer(playerEntity) === "WASD" ||
 									getAllianceNameFromPlayer(playerEntity) === "WASDX") && (
 									<TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
 								)}
 						</TabsList>
 						<TabsContent value="resources">
-							<Resources allianceEntity={selectedAlliance} />
+							<Resources />
 						</TabsContent>
 						<TabsContent value="fleets">
-							<Fleets allianceEntity={selectedAlliance} />
+							<Fleets />
 						</TabsContent>
 						<TabsContent value="leaderboard">
-							<Leaderboard allianceEntity={selectedAlliance} />
+							<Leaderboard />
 						</TabsContent>
 					</Tabs>
 				</div>
@@ -149,8 +120,7 @@ export default function MainDashboard() {
 
 			{view === views.profile && (
 				<div className="flex-1 bg-muted/40 p-4 md:p-8">
-					<h1 className="text-4xl font-semibold mb-5">Profile</h1>
-					Coming soon...
+					<Profile />
 				</div>
 			)}
 

@@ -1,9 +1,9 @@
-import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ConnectKitProvider } from "connectkit";
+import { Toaster } from "sonner";
 import { WagmiProvider } from "wagmi";
 import Core from "./components/core";
 import { wagmiConfig } from "./lib/wagmiConfig";
-import { ConnectKitProvider } from "connectkit";
 
 const queryClient = new QueryClient();
 
@@ -14,7 +14,16 @@ export default function App() {
 				<QueryClientProvider client={queryClient}>
 					<ConnectKitProvider>
 						<Core />
-						<Toaster />
+						<Toaster
+							toastOptions={{
+								unstyled: true,
+								classNames: {
+									toast:
+										"group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full border bg-background text-foreground",
+								},
+							}}
+							position="bottom-right"
+						/>
 					</ConnectKitProvider>
 				</QueryClientProvider>
 			</WagmiProvider>

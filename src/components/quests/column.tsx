@@ -1,7 +1,3 @@
-import type { Quest } from "@/types/quest";
-import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, X } from "lucide-react";
-import { Button } from "../ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -9,9 +5,26 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { activateQuest, deactivateQuest, deleteQuest } from "@/integrations";
+import type { Quest } from "@/types/quest";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+	ArrowUpDown,
+	MoreHorizontal,
+	Pen,
+	PowerIcon,
+	PowerOff,
+	X,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 
 export const columns: ColumnDef<Quest>[] = [
+	{
+		accessorKey: "id",
+		header: "ID",
+	},
 	{
 		id: "select",
 		header: ({ table }) => (
@@ -39,10 +52,6 @@ export const columns: ColumnDef<Quest>[] = [
 		header: "Name",
 	},
 	{
-		accessorKey: "quest_type",
-		header: "Quest Type",
-	},
-	{
 		accessorKey: "points",
 		header: ({ column }) => {
 			return (
@@ -65,10 +74,10 @@ export const columns: ColumnDef<Quest>[] = [
 		header: "Active",
 	},
 	{
-		accessorKey: "created_at",
+		accessorKey: "createdAt",
 		header: "Created at",
 		cell: ({ row }) => {
-			const date = new Date(row.getValue("created_at"));
+			const date = new Date(row.getValue("createdAt"));
 			return <div>{date.toDateString()}</div>;
 		},
 	},
@@ -86,13 +95,58 @@ export const columns: ColumnDef<Quest>[] = [
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
+						{row.getValue("active") ? (
+							<DropdownMenuItem
+								onClick={async () => {
+									const id = row.getValue("id");
+									const deactivatePromise = deactivateQuest(id as number);
+									toast.promise(deactivatePromise, {
+										loading: "Deactivating quest...",
+										success: "Quest deactivated",
+										error: "Failed to deactivate quest",
+									});
+								}}
+							>
+								<PowerOff className="mr-2 h-4 w-4" />
+								<span>Deactivate Quest</span>
+							</DropdownMenuItem>
+						) : (
+							<DropdownMenuItem
+								onClick={async () => {
+									const activatePromise = activateQuest(row.getValue("id"));
+									toast.promise(activatePromise, {
+										loading: "Activating quest...",
+										success: "Quest activated",
+										error: "Failed to activate quest",
+									});
+								}}
+							>
+								<PowerIcon className="mr-2 h-4 w-4" />
+								<span>Activate Quest</span>
+							</DropdownMenuItem>
+						)}
+
+						<DropdownMenuItem
+							onClick={async () => {
+								const deletePromise = deleteQuest(row.getValue("id"));
+								toast.promise(deletePromise, {
+									loading: "Deleting quest...",
+									success: "Quest deleted",
+									error: "Failed to delete quest",
+								});
+							}}
+						>
+							<X className="mr-2 h-4 w-4" />
+							<span>Delete Quest</span>
+						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() => {
 								console.log("quest", row.getValue("id"));
 							}}
+							disabled
 						>
-							<X className="mr-2 h-4 w-4" />
-							<span>Finish Quest</span>
+							<Pen className="mr-2 h-4 w-4" />
+							<span>Edit Quest</span>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

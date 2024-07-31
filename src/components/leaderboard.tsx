@@ -7,44 +7,32 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { quests } from "@/constants/quests";
+import { usePrimodiumContext } from "@/contexts/primodium-context";
 import { shortenAddress } from "@/lib/utils";
 import {
 	createUtils,
 	entityToAddress,
 	entityToPlayerName,
 } from "@primodiumxyz/core";
-import {
-	useAccountClient,
-	useCore,
-	useSyncStatus,
-} from "@primodiumxyz/core/react";
+import { useCore, useSyncStatus } from "@primodiumxyz/core/react";
 import { type Entity, query } from "@primodiumxyz/reactive-tables";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import type { Address } from "viem";
+import { useAccount } from "wagmi";
 import { Progress } from "./ui/progress";
 
-export const Leaderboard = ({
-	allianceEntity,
-}: { allianceEntity?: Entity }) => {
+export const Leaderboard = () => {
 	const { tables, sync } = useCore();
+	const { currentAlliance, playerEntity, playersInAlliance } =
+		usePrimodiumContext();
+	const { address } = useAccount();
 	const { loading, progress } = useSyncStatus();
 	const { getAsteroidInfo, getBuildingInfo } = createUtils(tables);
-	const { playerAccount } = useAccountClient();
 	const [earnedPoints, setEarnedPoints] = useState<number | undefined>();
 	const [totalPoints, setTotalPoints] = useState<number | undefined>();
 
 	const playerPoints = useMemo(() => {
-		const playersInAlliance = query({
-			withProperties: [
-				{
-					table: tables.PlayerAlliance,
-					properties: { alliance: allianceEntity },
-				},
-			],
-		});
-
 		const playerPoints: Record<string, number> = {};
 
 		for (const player of playersInAlliance) {
@@ -98,18 +86,17 @@ export const Leaderboard = ({
 
 		return sortedPoints;
 	}, [
+		playersInAlliance,
 		getAsteroidInfo,
 		getBuildingInfo,
-		allianceEntity,
 		tables.Home,
 		tables.OwnedBy,
-		tables.PlayerAlliance,
 		sync,
 	]);
 
 	useEffect(() => {
 		for (const [player, points] of playerPoints) {
-			if (player === playerAccount.entity) {
+			if (player === playerEntity) {
 				setEarnedPoints(points);
 			}
 		}
@@ -119,8 +106,11 @@ export const Leaderboard = ({
 			total += points[1];
 		}
 		setTotalPoints(total);
-	}, [playerPoints, playerAccount.entity]);
+	}, [playerPoints, playerEntity]);
 
+	if (!currentAlliance) {
+		return <div> No alliance selected. </div>;
+	}
 	if (loading) return <Progress value={progress * 100} className="w-2/3 h-6" />;
 	return (
 		<div className="w-full max-w-6xl mx-auto py-6">
@@ -150,10 +140,8 @@ export const Leaderboard = ({
 										Connected Account
 									</p>
 									<div className="text-sm rounded p-2 grid gap-1 rounded grid-rows-2">
-										<p>{entityToPlayerName(playerAccount.entity)}</p>
-										<p className="text-muted-foreground">
-											{playerAccount.address}
-										</p>
+										<p>{entityToPlayerName(playerEntity)}</p>
+										<p className="text-muted-foreground">{address}</p>
 									</div>
 								</div>
 							</div>
@@ -175,26 +163,6 @@ export const Leaderboard = ({
 						</CardContent>
 					</Card>
 				)}
-
-				<Card className="p-6 flex flex-col gap-4 overscroll-auto">
-					<h3 className="text-lg font-medium">Active Quests</h3>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Points</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{quests.map((quest) => (
-								<TableRow key={quest.id}>
-									<TableCell>{quest.name}</TableCell>
-									<TableCell>{quest.points}</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</Card>
 			</div>
 			<Card className="mt-6 p-6">
 				<h3 className="text-lg font-medium mb-4">Leaderboard</h3>

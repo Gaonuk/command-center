@@ -1,3 +1,4 @@
+import PrimodiumContextProvider from "@/contexts/primodium-context";
 import { coreConfig } from "@/lib/coreConfig";
 import { runCustomSync } from "@/lib/runCustomSync";
 import { type Core as CoreType, createCore } from "@primodiumxyz/core";
@@ -21,15 +22,17 @@ function Core() {
 	return (
 		//@ts-expect-error - mud types are too complex so we will ignore for now.
 		<CoreProvider {...core}>
-			{loading ? (
-				<div className="w-2/3 h-6">
-					<h4 className="text-xl font-semibold tracking-tight mb-4">
-						Loading Game Data...
-					</h4>
-				</div>
-			) : (
-				<MainDashboard />
-			)}
+			<PrimodiumContextProvider>
+				{loading ? (
+					<div className="w-2/3 h-6">
+						<h4 className="text-xl font-semibold tracking-tight mb-4">
+							Loading Game Data...
+						</h4>
+					</div>
+				) : (
+					<MainDashboard />
+				)}
+			</PrimodiumContextProvider>
 		</CoreProvider>
 	);
 }
